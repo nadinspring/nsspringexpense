@@ -2,7 +2,6 @@ import streamlit as st
 from datetime import date
 from supabase import create_client, Client
 import pandas as pd
-import hashlib
 
 # --- Constants ---
 CATEGORY_OPTIONS = {
@@ -197,49 +196,8 @@ def undo_transactions():
     except Exception as e:
         st.error(f"Error loading undo transactions: {e}")
 
-# --- Sample user database with hashed passwords ---
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-USER_CREDENTIALS = {
-    "nadin": hash_password("Nadin@2005"),  # Change this to your desired password
-    "admin": hash_password("adminpass")
-}
-
-def login():
-    st.title("🔐 Login to Spring NS Tracker")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    login_btn = st.button("Login")
-
-    if login_btn:
-        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == hash_password(password):
-            st.success("✅ Login successful!")
-            st.session_state["logged_in"] = True
-            st.session_state["username"] = username
-
-            st.success("Login successful! Please manually refresh or press [R] to reload the app.")
-            st.stop()
-        else:
-            st.error("❌ Invalid username or password")
-
-
-
 # --- Main App ---
 def main():
-    if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
-
-    if not st.session_state.logged_in:
-        login()
-        return
-
-    st.sidebar.success(f"👋 Welcome, {st.session_state['username']}")
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.experimental_rerun()
-
     accounts_data = fetch_accounts()
     if not accounts_data:
         st.error("❌ No accounts found. Please set up accounts in the database.")
@@ -263,7 +221,6 @@ def main():
 
     show_latest_transactions()
     undo_transactions()
-
 
 if __name__ == "__main__":
     main()
